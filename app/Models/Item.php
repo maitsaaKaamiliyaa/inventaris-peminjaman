@@ -94,7 +94,7 @@ class Item extends Model
         });
 
         static::updated(function ($item) {
-            // ketika kondisi berubah jadi rusak, jumlah rusak akan bertambah
+            // ketika kondisi di tbl items berubah jadi rusak, jumlah rusak akan bertambah
             if ($item->wasChanged('kondisi') && $item->kondisi === 'rusak') {
                 $kode = $item->kodeRelasi;
 
@@ -103,8 +103,8 @@ class Item extends Model
                 }
             }
 
-            // ketika kondisi berubah jadi selain rusak, jumlah rusak akan bertambah
-            if ($item->wasChanged('kondisi') && $item->kondisi !== 'rusak') {
+            // ketika kondisi di tbl items berubah jadi selain rusak, jumlah rusak akan berkurang
+            if ($item->wasChanged('kondisi') && $item->getOriginal('kondisi') === 'rusak' && $item->kondisi !== 'rusak') {
                 $kode = $item->kodeRelasi;
 
                 if ($kode) {
