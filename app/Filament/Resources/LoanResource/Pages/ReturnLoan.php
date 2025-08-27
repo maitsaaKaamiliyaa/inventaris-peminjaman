@@ -58,6 +58,8 @@ class ReturnLoan extends Page
 
     public function submit(): void
     {
+        $kondisiSebelum = $this->record->condition;
+
         $this->record->update([
             'return_date' => $this->return_date,
             'condition' => $this->condition,
@@ -67,13 +69,6 @@ class ReturnLoan extends Page
         $item = $this->record->item;
 
         $kode = $item?->kodeRelasi;
-
-        $conditionBefore = $this->record->condition;
-
-        // jumlah_rusak bertambah jika saat return mengisi kondisi rusak
-        if ($conditionBefore !== 'rusak' && $this->condition === 'rusak') {
-            $kode->increment('jumlah_rusak', $this->record->jumlah);
-        }
 
         $this->record->item->update([
             'kondisi' => $this->condition,
