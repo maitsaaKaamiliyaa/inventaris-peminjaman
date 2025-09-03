@@ -119,14 +119,14 @@ class Item extends Model
             // Karena FILESYSTEM_DISK di .env adalah 'public'.
             // Jadi, secara otomatis laravel akan menyimpan file di dalam folder 'public/'.
 
-            if ($item->qr_path && Storage::exists('public/' . $item->qr_path)) {
-                Storage::delete('public/' . $item->qr_path);
+            if ($item->qr_path && Storage::exists($item->qr_path)) {
+                Storage::delete($item->qr_path);
             }
         });
 
         static::deleting(function ($item) {
-            if ($item->gambar && Storage::exists('public/' . $item->gambar)) {
-                Storage::delete('public/' . $item->gambar);
+            if ($item->gambar && Storage::exists($item->gambar)) {
+                Storage::delete($item->gambar);
             } 
         });
     }
