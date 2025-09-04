@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\Loan;
 use App\Filament\Resources\LoanResource;
+use App\Filament\Resources\LoanResource\Pages\ReturnLoan;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -51,6 +52,47 @@ class LatestLoans extends BaseWidget
                         'rejected' => 'danger',
                         'returned' => 'info',
                     }),
+            ])
+            ->actions([
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        // tombol edit hanya ada ketika status pinjaman adalah 'pending' di akun pegawai
+                        ->visible(fn (Loan $record) => $record->status === 'pending' && auth()->user()->hasRole('pegawai')),
+
+                    Tables\Actions\Action::make('return')
+                        ->label('Return')
+                        ->url(fn (Loan $record) => ReturnLoan::getUrl([$record]))
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        // tombol return hanya ada ketika status pinjaman adalah 'approved' di akun pegawai
+                        ->visible(fn (Loan $record) => $record->status === 'approved'  && auth()->user()->hasRole('pegawai')),
+                    
+                    // Tables\Actions\DeleteAction::make()
+                    //     // tombol delete tdak ada ketika status pinjaman adalah 'pending' di akun pegawai
+                    //     ->visible(fn (Loan $record) => $record->status !== 'pending' && auth()->user()->hasRole('pegawai')),
+
+                    // tombol approve dan reject hanya ada ketika status pinjaman adalah 'pending' di akun admin
+                    Tables\Actions\Action::make('approve')
+                        ->label('Approve')
+                        ->icon('heroicon-o-check')
+                        ->color('success')
+                        ->visible(fn ($record) => $record->status === 'pending' && auth()->user()->hasRole('admin'))
+                        // akan mengirimkan data ke server untuk mengubah status pinjaman menjadi 'approved'
+                        ->action(function ($record) {
+                            // mengurangi stok barang
+                            $record->status = 'approved';
+                            $record->save();
+                        }),
+
+                    Tables\Actions\Action::make('reject')
+                        ->label('Reject')
+                        ->icon('heroicon-o-x-mark')
+                        ->color('danger')
+                        ->visible(fn ($record) => $record->status === 'pending' && auth()->user()->hasRole('admin'))
+                        ->action(function ($record) {
+                            $record->status = 'rejected';
+                            $record->save();
+                        }),
+                ])->icon('heroicon-m-ellipsis-horizontal')
             ]);
     }
 }
