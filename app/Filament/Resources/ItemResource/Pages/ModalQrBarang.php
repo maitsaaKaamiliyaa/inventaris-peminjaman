@@ -7,17 +7,19 @@ use Filament\Resources\Pages\Page;
 use App\Models\Loan;
 use App\Models\Item;
 use Filament\Tables;
-use Filament\Forms;
+use Filament\Infolists;
+use Filament\Actions;
+use Filament\Notifications\Notification;
 
-class ModalQrBarang extends Page implements Tables\Contracts\HasTable, Forms\Contracts\HasForms
+class ModalQrBarang extends Page implements Tables\Contracts\HasTable, Infolists\Contracts\HasInfolists
 {
     use Tables\Concerns\InteractsWithTable;
     
-    use Forms\Concerns\InteractsWithForms;
+    use Infolists\Concerns\InteractsWithInfolists;
 
     public $itemId;
 
-    public ?array $data = []; //ini untuk menyimpan data yang akan ditampilkan di form
+    // public ?array $data = []; //ini untuk menyimpan data yang akan ditampilkan di form
 
     protected static string $resource = ItemResource::class;
 
@@ -32,46 +34,60 @@ class ModalQrBarang extends Page implements Tables\Contracts\HasTable, Forms\Con
         $item = Item::findOrFail($itemId);
 
         // mengisi data untuk form
-        $this->form->fill($item->toArray());
+        // $this->form->fill($item->toArray());
     }
 
     // form untuk menampilkan detail barang
-    public function form(Forms\Form $form): Forms\Form 
+    public function infolist(Infolists\Infolist $infolist): Infolists\Infolist 
     {
 
         $item = Item::find($this->itemId);
 
-        return $form
+        return $infolist
+            ->record($item) // mengikat infolist ke model item
             ->schema([
-                Forms\Components\TextInput::make('kode_barang')
+                Infolists\Components\TextEntry::make('kode_barang')
                     ->label('Kode Barang')
-                    ->disabled()
                     ->default($item->kode_barang), // menampilkan kode barang yang sudah digenerate
 
-                Forms\Components\TextInput::make('kategori')
-                    ->label('Kategori')
-                    ->disabled(),
+                Infolists\Components\TextEntry::make('name')
+                    ->label('Merek Barang'),
 
-                Forms\Components\TextInput::make('harga')
-                    ->label('Harga') 
-                    ->disabled(),
+                Infolists\Components\TextEntry::make('kategori')
+                    ->label('Kategori'),
 
-                Forms\Components\TextInput::make('kondisi')
-                    ->label('Kondisi')
-                    ->disabled(),
+                Infolists\Components\TextEntry::make('jumlah')
+                    ->label('Jumlah')
+                    ->state(1),
+
+                Infolists\Components\TextEntry::make('harga')
+                    ->label('Harga')
+                    ->money('IDR', true),
+
+                Infolists\Components\TextEntry::make('kondisi')
+                    ->label('Kondisi'),
                 
-                Forms\Components\TextInput::make('lokasi')
-                    ->label('Lokasi Barang')
-                    ->disabled(),
+                Infolists\Components\TextEntry::make('lokasi')
+                    ->label('Lokasi Barang'),
                 
-                Forms\Components\Textarea::make('notes')
+                Infolists\Components\TextEntry::make('notes')
                     ->label('Catatan')
-                    ->disabled()
-                    ->afterStateHydrated(fn ($component, $state) => $component->state(strip_tags($state))),
+                    ->markdown(), //biar ga ada tag html yang muncul
+                
+                Infolists\Components\TextEntry::make('created_at')
+                    ->label('Tanggal dimasukkan')
+                    ->dateTime(),
+
+                Infolists\Components\TextEntry::make('updated_at')
+                    ->label('Tanggal terakhir diubah')
+                    ->dateTime(),
+
+                Infolists\Components\ImageEntry::make('gambar')
+                    ->label('Gambar')
+                    ->disk('public')
+                    ->default($item->gambar),
             ])
-            ->columns(2)
-            ->statePath('data') // mengikat form ke data yang akan ditampilkan
-            ->model($item);
+            ->columns(2);
     }
 
     protected function getTableQuery()
@@ -132,6 +148,37 @@ class ModalQrBarang extends Page implements Tables\Contracts\HasTable, Forms\Con
                     'pending'  => 'warning',
                     'rejected' => 'danger', 
                     'returned' => 'info',
+                }),
+        ];
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\Action::make('create')
+                ->label('New Item')
+                ->url(ItemResource::getUrl('create')),
+
+            Actions\Action::make('edit')
+                ->label('Edit')
+                ->icon('heroicon-o-pencil-square')
+                ->url(ItemResource::getUrl('edit', ['record' => $this->itemId])),
+
+            Actions\Action::make('delete')
+                ->label('Delete')
+                ->icon('heroicon-o-trash')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->action(function () {
+                    $item = Item::findOrFail($this->itemId);
+                    $item->delete();
+
+                    Notification::make()
+                        ->title('Deleted')
+                        ->success()
+                        ->send();
+
+                    return redirect(ItemResource::getUrl('index'));  // mengembalikan ke menu items setelah melakukan penghapusan
                 }),
         ];
     }
