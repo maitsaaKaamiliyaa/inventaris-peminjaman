@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\LoanResource\Pages;
 use App\Filament\Resources\LoanResource\RelationManagers;
 use App\Filament\Resources\LoanResource\Pages\ReturnLoan;
+use App\Filament\Resources\LoanResource\Pages\ViewDetail;
 use App\Models\Loan;
 use App\Models\User;
 use App\Models\Item;
@@ -195,6 +196,11 @@ class LoanResource extends Resource
                             $record->status = 'rejected';
                             $record->save();
                         }),
+                    
+                    Tables\Actions\Action::make('viewDetail')
+                        ->label('View')
+                        ->url(fn (Loan $record) => ViewDetail::getUrl(['record' => $record]))
+                        ->icon('heroicon-o-eye'),
                 ])->icon('heroicon-m-ellipsis-horizontal')
             ])
             ->bulkActions([
@@ -218,6 +224,7 @@ class LoanResource extends Resource
             'create' => Pages\CreateLoan::route('/create'),
             'return' => Pages\ReturnLoan::route('/{record}/return'),
             'edit' => Pages\EditLoan::route('/{record}/edit'),
+            'viewDetail' => Pages\ViewDetail::route('/{record}/viewDetail')
         ];
     }
 }
