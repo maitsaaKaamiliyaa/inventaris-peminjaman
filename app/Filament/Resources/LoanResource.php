@@ -72,14 +72,12 @@ class LoanResource extends Resource
                     ->label('Tanggal Peminjaman')
                     ->required(),
 
-                Forms\Components\RichEditor::make('alasan')
+                Forms\Components\TextArea::make('alasan')
                     ->label('Alasan Peminjaman')
-                    ->columnSpanFull()
-                    ->toolbarButtons([
-                        'bold', 'italic', 'underline', 'strike', 'bulletList', 'orderedList', 'link',
-                    ])
-                    ->placeholder('Tuliskan alasan peminjaman...')
-                    ->required(),
+                    ->required()
+                    ->dehydrateStateUsing(fn ($state) => strip_tags($state)) // menghapus tag html
+                    ->rows(3)
+                    ->columnSpanFull(),
 
                 Forms\Components\Select::make('status')
                     ->options([
