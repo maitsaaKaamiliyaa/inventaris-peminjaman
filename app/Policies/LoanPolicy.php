@@ -54,6 +54,10 @@ class LoanPolicy
         return $user->hasRole('pegawai') && $loan->user_id === $user->id;
     }
 
+    public function viewDetail(User $user, Loan $loan)
+    {
+        return $user->hasRole(['admin', 'pegawai']);
+    }
     /**
      * Determine whether the user can restore the model.
      */
