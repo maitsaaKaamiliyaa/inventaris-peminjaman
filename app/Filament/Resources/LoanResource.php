@@ -72,6 +72,15 @@ class LoanResource extends Resource
                     ->label('Tanggal Peminjaman')
                     ->required(),
 
+                Forms\Components\RichEditor::make('alasan')
+                    ->label('Alasan Peminjaman')
+                    ->columnSpanFull()
+                    ->toolbarButtons([
+                        'bold', 'italic', 'underline', 'strike', 'bulletList', 'orderedList', 'link',
+                    ])
+                    ->placeholder('Tuliskan alasan peminjaman...')
+                    ->required(),
+
                 Forms\Components\Select::make('status')
                     ->options([
                         'pending'  => 'Pending',
@@ -124,6 +133,12 @@ class LoanResource extends Resource
                 Tables\Columns\TextColumn::make('loan_date')
                     ->date()
                     ->label('Tanggal Peminjaman'),
+
+                Tables\Columns\TextColumn::make('alasan')
+                    ->label('Alasan Peminjaman')
+                    ->formatStateUsing(fn($state) => strip_tags($state))
+                    ->limit(100)
+                    ->wrap(),
 
                 Tables\Columns\TextColumn::make('return_date')
                     ->date()
