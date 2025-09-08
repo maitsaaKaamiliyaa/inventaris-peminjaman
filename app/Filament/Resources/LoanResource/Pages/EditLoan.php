@@ -42,12 +42,10 @@ class EditLoan extends EditRecord
                     ->label('Tanggal Pinjam')
                     ->disabled(),
 
-                Forms\Components\RichEditor::make('alasan')
+                Forms\Components\TextArea::make('alasan')
                     ->label('Alasan Peminjaman')
                     ->required()
-                    ->toolbarButtons([
-                        'bold', 'italic', 'underline', 'strike', 'bulletList', 'orderedList', 'link',
-                    ])
+                    ->rows(3)
                     ->columnSpanFull(),
             ]);
     }
