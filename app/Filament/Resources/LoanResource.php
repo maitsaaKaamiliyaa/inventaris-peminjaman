@@ -185,8 +185,7 @@ class LoanResource extends Resource
                             // mengurangi stok barang
                             $record->status = 'approved';
                             $record->save();
-                        })
-                        ->requiresConfirmation(),
+                        }),
 
                     Tables\Actions\Action::make('reject')
                         ->label('Reject')
@@ -196,8 +195,7 @@ class LoanResource extends Resource
                         ->action(function ($record) {
                             $record->status = 'rejected';
                             $record->save();
-                        })
-                        ->requiresConfirmation(),
+                        }),
                     
                     Tables\Actions\Action::make('viewDetail')
                         ->label('View')
