@@ -173,7 +173,8 @@ class ViewDetail extends Page implements Infolists\Contracts\HasInfolists
                     // mengurangi stok barang
                     $this->loan->status = 'approved';
                     $this->loan->save();
-                }),
+                })
+                ->requiresConfirmation(),
 
             Actions\Action::make('reject')
                 ->label('Reject')
@@ -183,7 +184,8 @@ class ViewDetail extends Page implements Infolists\Contracts\HasInfolists
                 ->action(function () {
                     $this->loan->status = 'rejected';
                     $this->loan->save();
-                }),
+                })
+                ->requiresConfirmation(),
         ];
     }
 }
