@@ -160,7 +160,7 @@ class ViewDetail extends Page implements Infolists\Contracts\HasInfolists
             Actions\Action::make('edit')
                 ->label('Edit')
                 ->icon('heroicon-o-pencil-square')
-                ->visible(fn($record) => auth()->user()->hasRole('pegawai'))
+                ->visible(fn ($record) => auth()->user()->hasRole('pegawai'))
                 ->url(LoanResource::getUrl('edit', ['record' => $this->loan])),
 
             Actions\Action::make('approve')
