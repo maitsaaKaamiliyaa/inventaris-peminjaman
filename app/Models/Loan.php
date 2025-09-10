@@ -25,7 +25,9 @@ class Loan extends Model
         'loan_date',
         'return_date',
         'status',
-        'alasan'
+        'alasan',
+        'alasan_admin',
+        'gambar'
     ];
 
     protected static function booted(): void // otomatis mengupdate stok barang saat status pinjaman berubah
