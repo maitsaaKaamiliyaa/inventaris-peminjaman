@@ -173,32 +173,9 @@ class LoanResource extends Resource
                     // Tables\Actions\DeleteAction::make()
                     //     // tombol delete tdak ada ketika status pinjaman adalah 'pending' di akun pegawai
                     //     ->visible(fn (Loan $record) => $record->status !== 'pending' && auth()->user()->hasRole('pegawai')),
-
-                    // tombol approve dan reject hanya ada ketika status pinjaman adalah 'pending' di akun admin
-                    Tables\Actions\Action::make('approve')
-                        ->label('Approve')
-                        ->icon('heroicon-o-check')
-                        ->color('success')
-                        ->visible(fn ($record) => $record->status === 'pending' && auth()->user()->hasRole('admin'))
-                        // akan mengirimkan data ke server untuk mengubah status pinjaman menjadi 'approved'
-                        ->action(function ($record) {
-                            // mengurangi stok barang
-                            $record->status = 'approved';
-                            $record->save();
-                        }),
-
-                    Tables\Actions\Action::make('reject')
-                        ->label('Reject')
-                        ->icon('heroicon-o-x-mark')
-                        ->color('danger')
-                        ->visible(fn ($record) => $record->status === 'pending' && auth()->user()->hasRole('admin'))
-                        ->action(function ($record) {
-                            $record->status = 'rejected';
-                            $record->save();
-                        }),
                     
                     Tables\Actions\Action::make('viewDetail')
-                        ->label('View')
+                        ->label('Detail')
                         ->url(fn (Loan $record) => ViewDetail::getUrl(['record' => $record]))
                         ->icon('heroicon-o-eye'),
                 ])->icon('heroicon-m-ellipsis-horizontal')
