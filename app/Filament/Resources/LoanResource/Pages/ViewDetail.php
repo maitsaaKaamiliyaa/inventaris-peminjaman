@@ -160,30 +160,29 @@ class ViewDetail extends Page implements Infolists\Contracts\HasInfolists
             Actions\Action::make('edit')
                 ->label('Edit')
                 ->icon('heroicon-o-pencil-square')
-                ->visible(fn ($record) => auth()->user()->hasRole('pegawai'))
+                ->visible(fn () => $this->loan->status === 'pending' && auth()->user()->hasRole('pegawai'))
                 ->url(LoanResource::getUrl('edit', ['record' => $this->loan])),
 
+            Actions\Action::make('return')
+                ->label('Return')
+                ->url(LoanResource::getUrl('return', ['record' => $this->loan]))
+                ->icon('heroicon-o-arrow-uturn-left')
+                // tombol return hanya ada ketika status pinjaman adalah 'approved' di akun pegawai
+                ->visible(fn () => $this->loan->status === 'approved'  && auth()->user()->hasRole('pegawai')),
+                    
             Actions\Action::make('approve')
                 ->label('Approve')
                 ->icon('heroicon-o-check')
                 ->color('success')
                 ->visible(fn () => $this->loan->status === 'pending' && auth()->user()->hasRole('admin'))
-                // akan mengirimkan data ke server untuk mengubah status pinjaman menjadi 'approved'
-                ->action(function () {
-                    // mengurangi stok barang
-                    $this->loan->status = 'approved';
-                    $this->loan->save();
-                }),
+                ->url(LoanResource::getUrl('approve', ['record' => $this->loan])),
 
             Actions\Action::make('reject')
                 ->label('Reject')
                 ->icon('heroicon-o-x-mark')
                 ->color('danger')
                 ->visible(fn () => $this->loan->status === 'pending' && auth()->user()->hasRole('admin'))
-                ->action(function () {
-                    $this->loan->status = 'rejected';
-                    $this->loan->save();
-                }),
+                ->url(LoanResource::getUrl('reject', ['record' => $this->loan])),
         ];
     }
 }
