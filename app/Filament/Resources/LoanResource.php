@@ -6,6 +6,7 @@ use App\Filament\Resources\LoanResource\Pages;
 use App\Filament\Resources\LoanResource\RelationManagers;
 use App\Filament\Resources\LoanResource\Pages\ReturnLoan;
 use App\Filament\Resources\LoanResource\Pages\ViewDetail;
+use App\Filament\Resources\LoanResource\Pages\AcceptLoan;
 use App\Models\Loan;
 use App\Models\User;
 use App\Models\Item;
@@ -163,13 +164,6 @@ class LoanResource extends Resource
                         // tombol edit hanya ada ketika status pinjaman adalah 'pending' di akun pegawai
                         ->visible(fn (Loan $record) => $record->status === 'pending' && auth()->user()->hasRole('pegawai')),
 
-                    Tables\Actions\Action::make('return')
-                        ->label('Return')
-                        ->url(fn (Loan $record) => ReturnLoan::getUrl([$record]))
-                        ->icon('heroicon-o-arrow-uturn-left')
-                        // tombol return hanya ada ketika status pinjaman adalah 'approved' di akun pegawai
-                        ->visible(fn (Loan $record) => $record->status === 'approved'  && auth()->user()->hasRole('pegawai')),
-                    
                     // Tables\Actions\DeleteAction::make()
                     //     // tombol delete tdak ada ketika status pinjaman adalah 'pending' di akun pegawai
                     //     ->visible(fn (Loan $record) => $record->status !== 'pending' && auth()->user()->hasRole('pegawai')),
@@ -201,7 +195,9 @@ class LoanResource extends Resource
             'create' => Pages\CreateLoan::route('/create'),
             'return' => Pages\ReturnLoan::route('/{record}/return'),
             'edit' => Pages\EditLoan::route('/{record}/edit'),
-            'viewDetail' => Pages\ViewDetail::route('/{record}/viewDetail')
+            'viewDetail' => Pages\ViewDetail::route('/{record}/viewDetail'),
+            'approve' => Pages\AcceptLoan::route('/{record}/approve'),
+            'reject' => Pages\RejectLoan::route('/{record}/reject'),
         ];
     }
 }
