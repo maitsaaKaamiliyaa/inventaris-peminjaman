@@ -100,7 +100,8 @@ class ViewDetail extends Page implements Infolists\Contracts\HasInfolists
                                         ->label(function (Loan $record) {
                                             return $record->status === 'rejected' ? 'Alasan Penolakan' : 'Catatan Admin';
                                         })
-                                        ->columnSpanFull(),
+                                        ->columnSpanFull()
+                                        ->visible(fn (Loan $record) => $record->alasan_admin !== null),
                                         ImageEntry::make('gambar')
                                         ->disk('public')
                                         ->visible(fn (Loan $record) => $record->gambar !== null)
