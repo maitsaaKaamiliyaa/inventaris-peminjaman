@@ -164,7 +164,9 @@ class LoanResource extends Resource
                     // Tables\Actions\DeleteAction::make()
                     //     // tombol delete tdak ada ketika status pinjaman adalah 'pending' di akun pegawai
                     //     ->visible(fn (Loan $record) => $record->status !== 'pending' && auth()->user()->hasRole('pegawai')),
-                    
+                    Tables\Actions\EditAction::make()
+                        // tombol edit ada ketika status pinjaman adalah 'pending' di akun pegawai
+                        ->visible(fn (Loan $record) => $record->status === 'pending' && auth()->user()->hasRole('pegawai')),
                     Tables\Actions\Action::make('viewDetail')
                         ->label('Detail')
                         ->url(fn (Loan $record) => ViewDetail::getUrl(['record' => $record]))
