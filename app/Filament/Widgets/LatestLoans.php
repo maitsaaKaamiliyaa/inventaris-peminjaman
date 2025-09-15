@@ -59,13 +59,6 @@ class LatestLoans extends BaseWidget
                     Tables\Actions\EditAction::make()
                         // tombol edit hanya ada ketika status pinjaman adalah 'pending' di akun pegawai
                         ->visible(fn (Loan $record) => $record->status === 'pending' && auth()->user()->hasRole('pegawai')),
-
-                    Tables\Actions\Action::make('return')
-                        ->label('Return')
-                        ->url(fn (Loan $record) => ReturnLoan::getUrl([$record]))
-                        ->icon('heroicon-o-arrow-uturn-left')
-                        // tombol return hanya ada ketika status pinjaman adalah 'approved' di akun pegawai
-                        ->visible(fn (Loan $record) => $record->status === 'approved'  && auth()->user()->hasRole('pegawai')),
                     
                     // Tables\Actions\DeleteAction::make()
                     //     // tombol delete tdak ada ketika status pinjaman adalah 'pending' di akun pegawai
