@@ -41,6 +41,12 @@ class EditLoan extends EditRecord
                 Forms\Components\DatePicker::make('loan_date')
                     ->label('Tanggal Pinjam')
                     ->disabled(),
+
+                Forms\Components\TextArea::make('alasan')
+                    ->label('Alasan Peminjaman')
+                    ->required()
+                    ->rows(3)
+                    ->columnSpanFull(),
             ]);
     }
 
