@@ -14,6 +14,7 @@ use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\Section;
 
 use Filament\Actions;
+use Filament\Infolists\Components\ImageEntry;
 
 class ViewDetail extends Page implements Infolists\Contracts\HasInfolists
 {
@@ -95,6 +96,15 @@ class ViewDetail extends Page implements Infolists\Contracts\HasInfolists
                                     Infolists\Components\TextEntry::make('alasan')
                                         ->label('Alasan Peminjaman')
                                         ->columnSpanFull(),
+                                    Infolists\Components\TextEntry::make('alasan_admin')
+                                        ->label(function (Loan $record) {
+                                            return $record->status === 'rejected' ? 'Alasan Penolakan' : 'Catatan Admin';
+                                        })
+                                        ->columnSpanFull(),
+                                        ImageEntry::make('gambar')
+                                        ->disk('public')
+                                        ->visible(fn (Loan $record) => $record->gambar !== null)
+                                        ,
                                 ]),
                             Tab::make('Barang')
                                 ->icon('heroicon-o-rectangle-stack')
