@@ -6,6 +6,7 @@ use App\Models\Loan;
 use App\Filament\Resources\LoanResource;
 use Filament\Resources\Pages\Page;
 use Filament\Forms;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Pages\Actions\Action;
 
@@ -24,11 +25,10 @@ class RejectLoan extends Page
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('alasan_admin')
+                Forms\Components\Textarea::make('alasan_admin')
                     ->label('Alasan Penolakan')
                     ->dehydrateStateUsing(fn ($state) => strip_tags($state))
                     ->placeholder('Tulis alasan...')
-                    ->textarea()
                     ->required(),
             ]);
     }
