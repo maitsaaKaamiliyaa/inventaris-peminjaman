@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\LoanResource\Pages;
 use App\Filament\Resources\LoanResource\RelationManagers;
 use App\Filament\Resources\LoanResource\Pages\ReturnLoan;
+use App\Filament\Resources\LoanResource\Pages\ViewDetail;
+use App\Filament\Resources\LoanResource\Pages\AcceptLoan;
 use App\Models\Loan;
 use App\Models\User;
 use App\Models\Item;
@@ -72,6 +74,13 @@ class LoanResource extends Resource
                     ->label('Tanggal Peminjaman')
                     ->required(),
 
+                Forms\Components\TextArea::make('alasan')
+                    ->label('Alasan Peminjaman')
+                    ->required()
+                    ->dehydrateStateUsing(fn ($state) => strip_tags($state)) // menghapus tag html
+                    ->rows(3)
+                    ->columnSpanFull(),
+
                 Forms\Components\Select::make('status')
                     ->options([
                         'pending'  => 'Pending',
@@ -125,6 +134,12 @@ class LoanResource extends Resource
                     ->date()
                     ->label('Tanggal Peminjaman'),
 
+                Tables\Columns\TextColumn::make('alasan')
+                    ->label('Alasan Peminjaman')
+                    ->formatStateUsing(fn($state) => strip_tags($state))
+                    ->limit(100)
+                    ->wrap(),
+
                 Tables\Columns\TextColumn::make('return_date')
                     ->date()
                     ->label('Tanggal Pengembalian'),
@@ -145,43 +160,17 @@ class LoanResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
-                    Tables\Actions\EditAction::make()
-                        // tombol edit hanya ada ketika status pinjaman adalah 'pending' di akun pegawai
-                        ->visible(fn (Loan $record) => $record->status === 'pending' && auth()->user()->hasRole('pegawai')),
 
-                    Tables\Actions\Action::make('return')
-                        ->label('Return')
-                        ->url(fn (Loan $record) => ReturnLoan::getUrl([$record]))
-                        ->icon('heroicon-o-arrow-uturn-left')
-                        // tombol return hanya ada ketika status pinjaman adalah 'approved' di akun pegawai
-                        ->visible(fn (Loan $record) => $record->status === 'approved'  && auth()->user()->hasRole('pegawai')),
-                    
                     // Tables\Actions\DeleteAction::make()
                     //     // tombol delete tdak ada ketika status pinjaman adalah 'pending' di akun pegawai
                     //     ->visible(fn (Loan $record) => $record->status !== 'pending' && auth()->user()->hasRole('pegawai')),
-
-                    // tombol approve dan reject hanya ada ketika status pinjaman adalah 'pending' di akun admin
-                    Tables\Actions\Action::make('approve')
-                        ->label('Approve')
-                        ->icon('heroicon-o-check')
-                        ->color('success')
-                        ->visible(fn ($record) => $record->status === 'pending' && auth()->user()->hasRole('admin'))
-                        // akan mengirimkan data ke server untuk mengubah status pinjaman menjadi 'approved'
-                        ->action(function ($record) {
-                            // mengurangi stok barang
-                            $record->status = 'approved';
-                            $record->save();
-                        }),
-
-                    Tables\Actions\Action::make('reject')
-                        ->label('Reject')
-                        ->icon('heroicon-o-x-mark')
-                        ->color('danger')
-                        ->visible(fn ($record) => $record->status === 'pending' && auth()->user()->hasRole('admin'))
-                        ->action(function ($record) {
-                            $record->status = 'rejected';
-                            $record->save();
-                        }),
+                    Tables\Actions\EditAction::make()
+                        // tombol edit ada ketika status pinjaman adalah 'pending' di akun pegawai
+                        ->visible(fn (Loan $record) => $record->status === 'pending' && auth()->user()->hasRole('pegawai')),
+                    Tables\Actions\Action::make('viewDetail')
+                        ->label('Detail')
+                        ->url(fn (Loan $record) => ViewDetail::getUrl(['record' => $record]))
+                        ->icon('heroicon-o-eye'),
                 ])->icon('heroicon-m-ellipsis-horizontal')
             ])
             ->bulkActions([
@@ -205,6 +194,9 @@ class LoanResource extends Resource
             'create' => Pages\CreateLoan::route('/create'),
             'return' => Pages\ReturnLoan::route('/{record}/return'),
             'edit' => Pages\EditLoan::route('/{record}/edit'),
+            'viewDetail' => Pages\ViewDetail::route('/{record}/viewDetail'),
+            'approve' => Pages\AcceptLoan::route('/{record}/approve'),
+            'reject' => Pages\RejectLoan::route('/{record}/reject'),
         ];
     }
 }

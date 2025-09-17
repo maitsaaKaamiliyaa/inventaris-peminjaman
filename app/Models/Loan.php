@@ -24,7 +24,10 @@ class Loan extends Model
         'jumlah_dipinjam',
         'loan_date',
         'return_date',
-        'status'
+        'status',
+        'alasan',
+        'alasan_admin',
+        'gambar'
     ];
 
     protected static function booted(): void // otomatis mengupdate stok barang saat status pinjaman berubah
