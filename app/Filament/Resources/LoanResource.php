@@ -74,12 +74,13 @@ class LoanResource extends Resource
                     ->label('Tanggal Peminjaman')
                     ->required(),
 
-                Forms\Components\TextArea::make('alasan')
+                Forms\Components\TextInput::make('alasan')
                     ->label('Alasan Peminjaman')
                     ->required()
                     ->dehydrateStateUsing(fn ($state) => strip_tags($state)) // menghapus tag html
                     ->rows(3)
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->textarea(),
 
                 Forms\Components\Select::make('status')
                     ->options([
