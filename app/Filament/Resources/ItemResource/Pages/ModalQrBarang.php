@@ -157,16 +157,19 @@ class ModalQrBarang extends Page implements Tables\Contracts\HasTable, Infolists
         return [
             Actions\Action::make('create')
                 ->label('New Item')
+                ->visible(fn () => auth()->user()->hasRole('admin'))
                 ->url(ItemResource::getUrl('create')),
 
             Actions\Action::make('edit')
                 ->label('Edit')
                 ->icon('heroicon-o-pencil-square')
+                ->visible(fn () => auth()->user()->hasRole('admin'))
                 ->url(ItemResource::getUrl('edit', ['record' => $this->itemId])),
 
             Actions\Action::make('delete')
                 ->label('Delete')
                 ->icon('heroicon-o-trash')
+                ->visible(fn () => auth()->user()->hasRole('admin'))
                 ->color('danger')
                 ->requiresConfirmation()
                 ->action(function () {

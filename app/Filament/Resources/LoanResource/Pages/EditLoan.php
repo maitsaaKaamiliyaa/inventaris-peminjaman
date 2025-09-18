@@ -5,6 +5,7 @@ namespace App\Filament\Resources\LoanResource\Pages;
 use App\Filament\Resources\LoanResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms;
 use App\Models\Item;
 
@@ -41,7 +42,7 @@ class EditLoan extends EditRecord
                 Forms\Components\DatePicker::make('loan_date')
                     ->label('Tanggal Pinjam'),
 
-                Forms\Components\TextArea::make('alasan')
+                Forms\Components\Textarea::make('alasan')
                     ->label('Alasan Peminjaman')
                     ->required()
                     ->rows(3)

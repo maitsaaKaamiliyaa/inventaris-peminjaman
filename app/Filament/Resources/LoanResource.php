@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\Textarea;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -74,7 +75,7 @@ class LoanResource extends Resource
                     ->label('Tanggal Peminjaman')
                     ->required(),
 
-                Forms\Components\TextArea::make('alasan')
+                Forms\Components\Textarea::make('alasan')
                     ->label('Alasan Peminjaman')
                     ->required()
                     ->dehydrateStateUsing(fn ($state) => strip_tags($state)) // menghapus tag html
