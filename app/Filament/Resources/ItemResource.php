@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Filament\Notifications\Notification;
+
 
 class ItemResource extends Resource
 {
@@ -252,22 +252,7 @@ class ItemResource extends Resource
                                 'url'     => $url
                             ]);
                         }),
-
-                    Tables\Actions\DeleteAction::make()
-                    // kondisi apabila barang yang sedang dipinjam ingin dihapus, barang tidak bisa dihapus dan akan memunculkan notif
-                    ->before(function ($record, $action) {
-                        $loanApproved = $record->loans()
-                            ->where('status', 'approved')
-                            ->exists();
-                            if($loanApproved) {
-                                Notification::make()
-                                    ->title('Barang yang ingin kamu hapus sedang dipinjam')
-                                    ->danger()
-                                    ->send();
-
-                                    $action->cancel();
-                            } 
-                    }),
+                    Tables\Actions\DeleteAction::make(),
                     
                 ])->icon('heroicon-m-ellipsis-horizontal')
             ])

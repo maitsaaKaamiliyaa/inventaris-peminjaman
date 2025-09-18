@@ -1,7 +1,7 @@
 <x-filament::page>
     {{-- form view --}}
     <div class="space-y-6">
-        {{ $this->form }}
+        {{ $this->infolist }}
 
         {{-- garis --}}
         <hr class="my-4">

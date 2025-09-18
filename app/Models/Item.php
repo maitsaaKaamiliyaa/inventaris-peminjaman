@@ -34,6 +34,7 @@ class Item extends Model
     {
         
         static::creating(function ($item) {
+            // FIXME: QR kode generation fail
             self::generateKode($item);
         });
 
@@ -114,14 +115,18 @@ class Item extends Model
         });
 
         static::deleting(function ($item) {
-            if ($item->qr_path && Storage::exists('public/' . $item->qr_path)) {
-                Storage::delete('public/' . $item->qr_path);
+            // FIXME: Hapus semua prefix 'public/ .' saat menyimpan atau menghapus file menggunakan Storage.
+            // Karena FILESYSTEM_DISK di .env adalah 'public'.
+            // Jadi, secara otomatis laravel akan menyimpan file di dalam folder 'public/'.
+
+            if ($item->qr_path && Storage::exists($item->qr_path)) {
+                Storage::delete($item->qr_path);
             }
         });
 
         static::deleting(function ($item) {
-            if ($item->gambar && Storage::exists('public/' . $item->gambar)) {
-                Storage::delete('public/' . $item->gambar);
+            if ($item->gambar && Storage::exists($item->gambar)) {
+                Storage::delete($item->gambar);
             } 
         });
     }
@@ -140,7 +145,9 @@ class Item extends Model
         $qrImage = QrCode::format('png')->size(300)->generate($qrContent);
 
         // simpan ke storage/public/qrcodes/
-        Storage::put('public/' . $filename, $qrImage);
+        // FIXME: Hapus prefix 'public/' jadi
+        // Storage::put($filename, $qrImage);
+        Storage::put($filename, $qrImage);
 
         // simpan path-nya ke database (langsung tanpa save ulang)
         $item->qr_path = $filename;
