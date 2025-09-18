@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Filament\Support\RawJs;
 
 
 class ItemResource extends Resource
@@ -92,7 +93,11 @@ class ItemResource extends Resource
 
                 Forms\Components\TextInput::make('harga')
                     ->label('Harga')
+                    ->mask(RawJs::make('$money($input)'))
+                    ->stripCharacters([','])
                     ->numeric()
+                    ->minValue(0)
+                    ->maxValue(999999999)
                     ->prefix('Rp. ')
                     ->required(),
 
