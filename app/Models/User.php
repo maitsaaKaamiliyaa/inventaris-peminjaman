@@ -16,12 +16,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+
+
 
 #[ObservedBy(UserObserver::class)]
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasUuids, HasRoles;
+    use HasFactory, Notifiable, HasUuids, HasRoles, HasApiTokens;
 
     protected $fillable = [
         'name',
@@ -71,8 +74,8 @@ class User extends Authenticatable implements FilamentUser
     }
 
     public function canAccessPulse(): bool {
-        return $this->roles()->whereHas('permissions', function($query) {
-            $query->where('http_path', '/pulse');
-        })->exists();
-    }
+    return $this->hasPermissionTo('akses pulse');
+}
+
+
 }

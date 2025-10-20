@@ -4,6 +4,8 @@ namespace App\Observers;
 
 use App\Models\Role;
 use App\Models\RolePermission;
+use Illuminate\Support\Facades\DB;
+
 
 class RoleObserver
 {
@@ -23,12 +25,16 @@ class RoleObserver
         //
     }
 
-     /**
+    /**
      * Handle the Role "deleting" event.
      */
     public function deleting(Role $role): void
     {
-        RolePermission::where('role_id', $role->id)->delete();
+        // Hapus relasi role dengan permission
+        DB::table('role_has_permissions')->where('role_id', $role->id)->delete();
+
+        // Hapus relasi role dengan user (model_has_roles)
+        DB::table('model_has_roles')->where('role_id', $role->id)->delete();
     }
 
     /**

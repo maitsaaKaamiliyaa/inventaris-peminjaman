@@ -15,6 +15,14 @@ class Loan extends Model
     public $incrementing = false;
     protected $keyType = 'string';
     protected $primaryKey = 'id';
+    protected $appends = ['gambar_url'];
+
+    public function getGambarUrlAttribute()
+    {
+        return $this->gambar ? asset('storage/' . $this->gambar) : null;
+    }
+
+    
 
     protected $fillable = [
         'user_id',
@@ -24,27 +32,35 @@ class Loan extends Model
         'jumlah_dipinjam',
         'loan_date',
         'return_date',
-        'status'
+        'status',
+        'alasan',
+        'alasan_admin',
+        'gambar'
     ];
 
-    protected static function booted(): void // otomatis mengupdate stok barang saat status pinjaman berubah
+    protected static function booted(): void
     {
-        static::updated(function ($loan) {
-            // ketika status berubah jadi approved, jumlah dipinjam akan bertambah
-            if ($loan->wasChanged('status') && $loan->status === 'approved') {
+        // Ketika loan baru dibuat
+        static::created(function ($loan) {
+            if ($loan->status === 'approved') {
                 $kode = $loan->item?->kodeRelasi;
-
                 if ($kode) {
-                    $kode->increment('jumlah_dipinjam', $loan->jumlah);
+                    $kode->safeIncrement('jumlah_dipinjam', $loan->jumlah);
                 }
             }
+        });
 
-            // ketika status berubah jadi returned, jumlah dipinjam akan berkurang
-            if ($loan->wasChanged('status') && $loan->status === 'returned') {
+        // Ketika loan diperbarui (status berubah)
+        static::updated(function ($loan) {
+            if ($loan->wasChanged('status')) {
                 $kode = $loan->item?->kodeRelasi;
 
-                if ($kode) {
-                    $kode->decrement('jumlah_dipinjam', $loan->jumlah);
+                if ($loan->status === 'approved' && $kode) {
+                    $kode->safeIncrement('jumlah_dipinjam', $loan->jumlah);
+                }
+
+                if ($loan->status === 'returned' && $kode) {
+                    $kode->safeDecrement('jumlah_dipinjam', $loan->jumlah);
                 }
             }
         });
