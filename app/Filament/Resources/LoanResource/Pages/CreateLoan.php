@@ -33,15 +33,17 @@ class CreateLoan extends CreateRecord
         $returnDate = $data['return_date'] ?? null;
         $jumlah     = $data['jumlah'] ?? 1;
         $status     = 'pending';
+        $alasan     = $data['alasan'];
 
         foreach ((array) $data['item_id'] as $itemId) {
-            $lastLoan = Loan::create([
+            $lastLoan = Loan::create([ 
                 'user_id'     => $userId,
                 'item_id'     => $itemId,
                 'jumlah'      => $jumlah,
                 'loan_date'   => $loanDate,
                 'return_date' => $returnDate,
                 'status'      => $status,
+                'alasan'      => $alasan,
             ]);
         }
         return $lastLoan; // mengembalikan pinjaman terakhir yang dibuat

@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\File;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('filament.admin.auth.login');
 });
 
 Route::get('/download-qr', [App\Http\Controllers\QrController::class, 'download'])->name('download.qr');
@@ -45,6 +45,3 @@ Route::get('/storage/{path}', function ($path) {
         'Access-Control-Allow-Headers' => 'Origin, Content-Type, Accept',
     ]);
 })->where('path', '.*');
-
-
-

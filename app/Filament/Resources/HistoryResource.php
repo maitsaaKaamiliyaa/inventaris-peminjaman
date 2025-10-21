@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\HistoryResource\Pages;
 use App\Filament\Resources\HistoryResource\RelationManagers;
+use App\Filament\Resources\LoanResource\Pages\ViewDetail;
 use App\Models\Loan;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,6 +15,7 @@ use Filament\Tables\Table;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Filters\Filter;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class HistoryResource extends Resource
@@ -29,6 +31,11 @@ class HistoryResource extends Resource
         return false;
     }
 
+    public static function canEdit(Model $record): bool
+    {
+        return false;
+    }
+
     // getEloquentQuery method untuk mengatur query yang digunakan untuk mengambil data
     public static function getEloquentQuery(): Builder
     {
@@ -40,7 +47,7 @@ class HistoryResource extends Resource
             ->whereIn('status', ['returned', 'rejected']);
 
         // jika user bukan admin, maka hanya bisa melihat data dirinya sendiri
-        if (! $user->hasRole('admin')){
+        if (! $user->hasRole('admin')) {
             $query->where('user_id', $user->id);
         }
 
@@ -97,16 +104,20 @@ class HistoryResource extends Resource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     })
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('viewDetail')
+                    ->label('Detail')
+                    ->url(fn(Loan $record) => ViewDetail::getUrl(['record' => $record]))
+                    ->icon('heroicon-o-eye'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -128,6 +139,7 @@ class HistoryResource extends Resource
             'index' => Pages\ListHistories::route('/'),
             'create' => Pages\CreateHistory::route('/create'),
             'edit' => Pages\EditHistory::route('/{record}/edit'),
+            'viewDetail' => ViewDetail::route('/{record}/viewDetail'),
         ];
     }
 }

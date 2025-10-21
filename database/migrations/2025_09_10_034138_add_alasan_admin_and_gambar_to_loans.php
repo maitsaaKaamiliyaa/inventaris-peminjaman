@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('permissions', function (Blueprint $table) {
-            $table->text('description');
+        Schema::table('loans', function (Blueprint $table) {
+            $table->text('alasan_admin')->nullable()->after('alasan');
+            $table->string('gambar')->nullable()->after('alasan_admin');
         });
     }
 
@@ -21,7 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('permissions', function (Blueprint $table) {
+        Schema::table('loans', function (Blueprint $table) {
             //
         });
     }

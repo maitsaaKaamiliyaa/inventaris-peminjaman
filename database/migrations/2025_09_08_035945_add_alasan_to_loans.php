@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users_roles', function (Blueprint $table) {
-            $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
+        Schema::table('loans', function (Blueprint $table) {
+            $table->text('alasan')->nullable()->after('status');
         });
     }
 
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users_roles', function (Blueprint $table) {
+        Schema::table('loans', function (Blueprint $table) {
             //
         });
     }

@@ -54,6 +54,20 @@ class LoanPolicy
         return $user->hasRole('pegawai') && $loan->user_id === $user->id;
     }
 
+    public function viewDetail(User $user, Loan $loan)
+    {
+        return $user->hasRole(['admin', 'pegawai']);
+    }
+
+    public function approve(User $user, Loan $loan): bool
+    {
+        return $user->hasRole('admin');
+    }
+
+    public function reject(User $user, Loan $loan): bool
+    {
+        return $user->hasRole('admin');
+    }
     /**
      * Determine whether the user can restore the model.
      */
