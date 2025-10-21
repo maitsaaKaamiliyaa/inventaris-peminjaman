@@ -29,131 +29,150 @@ class Item extends Model
         'notes',
         'kode_id',
     ];
+    
+    // ✅ tambahin gambar_url biar API kirim link gambar full
+    protected $appends = ['kode_barang', 'qr_url', 'gambar_url'];
+
+    // ...
+
+public function getGambarUrlAttribute()
+    {
+        if (!$this->gambar) {
+            return null;
+        }
+
+        // Pastikan path 'storage/' hanya sekali
+        $path = str_starts_with($this->gambar, 'items/')
+            ? $this->gambar
+            : "items/{$this->gambar}";
+
+        // Gunakan url() supaya sesuai dengan host (APP_URL)
+        return url("storage/{$path}");
+    }
+
 
     protected static function booted()
     {
-        
-        static::creating(function ($item) {
-            // FIXME: QR kode generation fail
-            self::generateKode($item);
-        });
-
+        /**
+         * Saat membuat item baru
+         */
         static::created(function ($item) {
             if ($item->kodeRelasi) {
-                $item->kodeRelasi->increment('jumlah'); // ditambahkan jumlah barang pada kode
+                $item->kodeRelasi->increment('jumlah');
+
+                if (strtolower($item->kondisi) === 'rusak') {
+                    $item->kodeRelasi->increment('jumlah_rusak');
+                }
             }
 
-            if ($item->kondisi === 'rusak' && $item->kodeRelasi) {
-                $item->kodeRelasi->increment('jumlah_rusak'); // ditambahkan jumlah rusak pada kode jika kondisi rusak
-            }
-
-            // rename file foto barang upload kode-kode (hanya setelah record tersedia)
+            // rename file gambar
             if ($item->gambar) {
                 $kodeUtama = optional($item->kodeRelasi)->kode ?? 'ITEM';
-
                 $kodeItem  = $item->kode ?? '000';
+                $ext       = pathinfo($item->gambar, PATHINFO_EXTENSION);
 
-                $ext     = pathinfo($item->gambar, PATHINFO_EXTENSION);
-                
                 $newPath = "items/{$kodeUtama}-{$kodeItem}.{$ext}";
+                if (Storage::disk('public')->exists($item->gambar)) {
+                    Storage::disk('public')->move($item->gambar, $newPath);
+                }
 
-                Storage::disk('public')->move($item->gambar, $newPath);
-
-                // update kolom gambar di database
                 $item->updateQuietly([
                     'gambar' => $newPath,
                 ]);
             }
+
+            // generate QR code
+            self::generateKode($item);
+            $item->saveQuietly();
+
+            
         });
 
-        static::deleted(function ($item) {
-            if ($item->kodeRelasi && $item->kodeRelasi->jumlah > 0) {
-                $item->kodeRelasi->decrement('jumlah'); // mengurangi jumlah barang pada kode jika barang dihapus
-            }
-
-            if ($item->kondisi === 'rusak' && $item->kodeRelasi && $item->kodeRelasi->jumlah_rusak > 0) {
-                $item->kodeRelasi->decrement('jumlah_rusak'); // mengurangi jumlah rusak pada kode jika barang dihapus dan kondisinya rusak
-            }
-        });
-
-        static::updating(function ($item) {
-            // cek apakah ada perubahan pada data yang masuk QR
-            if (
-                $item->isDirty('kode')
-                || $item->isDirty('name')
-                || $item->isDirty('kategori')
-                || $item->isDirty('jumlah')
-                || $item->isDirty('gambar')
-                || $item->isDirty('kondisi')
-                || $item->isDirty('harga')
-                || $item->isDirty('lokasi')
-                || $item->isDirty('notes')
-
-            ) {
-                self::generateKode($item);
-            }
-        });
-
+        /**
+         * Saat update kondisi
+         */
         static::updated(function ($item) {
-            // ketika kondisi di tbl items berubah jadi rusak, jumlah rusak akan bertambah
-            if ($item->wasChanged('kondisi') && $item->kondisi === 'rusak') {
+            if ($item->wasChanged('kondisi') && $item->kodeRelasi) {
                 $kode = $item->kodeRelasi;
 
-                if ($kode) {
-                    $kode->increment('jumlah_rusak', 1);
+                // normal → rusak
+                if (strtolower($item->getOriginal('kondisi')) !== 'rusak'
+                    && strtolower($item->kondisi) === 'rusak') {
+                    $kode->increment('jumlah_rusak');
                 }
-            }
 
-            // ketika kondisi di tbl items berubah jadi selain rusak, jumlah rusak akan berkurang
-            if ($item->wasChanged('kondisi') && $item->getOriginal('kondisi') === 'rusak' && $item->kondisi !== 'rusak') {
-                $kode = $item->kodeRelasi;
-
-                if ($kode) {
-                    $kode->decrement('jumlah_rusak', 1);
+                // rusak → normal
+                if (strtolower($item->getOriginal('kondisi')) === 'rusak'
+                    && strtolower($item->kondisi) !== 'rusak') {
+                    if ($kode->jumlah_rusak > 0) {
+                        $kode->decrement('jumlah_rusak');
+                    }
                 }
             }
         });
 
+        /**
+         * Saat hapus item
+         */
+        static::deleted(function ($item) {
+            if ($item->kodeRelasi) {
+                // Hitung ulang jumlah normal
+                $totalNormal = Item::where('kode_id', $item->kode_id)
+                    ->where('kondisi', '!=', 'Rusak')
+                    ->count();
+
+                // Hitung ulang jumlah rusak
+                $totalRusak = Item::where('kode_id', $item->kode_id)
+                    ->where('kondisi', 'Rusak')
+                    ->count();
+
+                $item->kodeRelasi->update([
+                    'jumlah' => $totalNormal,
+                    'jumlah_rusak' => $totalRusak,
+                ]);
+            }
+        });
+
+        /**
+         * Hapus file ketika item dihapus
+         */
         static::deleting(function ($item) {
-            // FIXME: Hapus semua prefix 'public/ .' saat menyimpan atau menghapus file menggunakan Storage.
-            // Karena FILESYSTEM_DISK di .env adalah 'public'.
-            // Jadi, secara otomatis laravel akan menyimpan file di dalam folder 'public/'.
+
+            $sedangDipinjam = $item->loans()
+            ->whereIn('status', ['approved', 'borrowed', 'dipinjam'])
+            ->exists();
+
+            if ($sedangDipinjam) {
+                throw new \Exception('Item ini sedang dipinjam dan tidak dapat dihapus.');
+            }
 
             if ($item->qr_path && Storage::exists($item->qr_path)) {
                 Storage::delete($item->qr_path);
             }
-        });
-
-        static::deleting(function ($item) {
             if ($item->gambar && Storage::exists($item->gambar)) {
                 Storage::delete($item->gambar);
-            } 
+            }
         });
     }
 
+    /**
+     * Generate QR code
+     */
     public static function generateKode($item)
     {
-        $qrContent = route('filament.admin.resources.items.modal-qr-barang',
-            ['itemId' => $item->getKey()]); // isi qr adalah URL untuk scan item
-
-        // pastikan relasi kode ada
+        $qrContent = 'http://127.0.0.1:8080/#/item-detail/' . $item->id;
+        
         $kodeUtama = optional($item->kodeRelasi)->kode ?? 'UNKNOWN';
-
-        // gabungkan kode dari tabel kodes dan items
-        $filename = "qrcodes/{$kodeUtama}-{$item->kode}.png";
+        $filename  = "qrcodes/{$kodeUtama}-{$item->kode}.png";
 
         $qrImage = QrCode::format('png')->size(300)->generate($qrContent);
-
-        // simpan ke storage/public/qrcodes/
-        // FIXME: Hapus prefix 'public/' jadi
-        // Storage::put($filename, $qrImage);
         Storage::put($filename, $qrImage);
 
-        // simpan path-nya ke database (langsung tanpa save ulang)
         $item->qr_path = $filename;
     }
 
-    public function kodeRelasi() : BelongsTo {
+    public function kodeRelasi(): BelongsTo
+    {
         return $this->belongsTo(Kode::class, 'kode_id', 'id');
     }
 
@@ -163,11 +182,14 @@ class Item extends Model
         return $kodeUtama . $this->kode;
     }
 
-    protected $appends = ['kode_barang'];
+    // ✅ accessor untuk kirim URL QR
+    public function getQrUrlAttribute()
+    {
+        return $this->qr_path ? asset('storage/' . $this->qr_path) : null;
+    }
 
     public function loans()
     {
         return $this->hasMany(Loan::class, 'item_id', 'id');
     }
-
 }
